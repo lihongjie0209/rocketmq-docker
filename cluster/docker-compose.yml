@@ -1,0 +1,31 @@
+version: '3.3'
+
+services:
+  namesrv:
+    image: apacherocketmq/rocketmq:4.5.0
+    command: sh mqnamesrv
+
+  master1:
+    image: apacherocketmq/rocketmq:4.5.0
+
+    volumes:
+      - ./master1.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
+    command: sh mqbroker -n namesrv:9876 -c ../conf/broker.conf
+    depends_on:
+      - namesrv
+  slave1:
+    image: apacherocketmq/rocketmq:4.5.0
+
+    volumes:
+      - ./slave1.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
+    command: sh mqbroker -n namesrv:9876 -c ../conf/broker.conf
+    depends_on:
+      - namesrv
+  console:
+    image: styletang/rocketmq-console-ng
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    ports:
+      - 8080:8080
+    depends_on:
+      - namesrv
